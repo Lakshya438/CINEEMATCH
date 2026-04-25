@@ -234,7 +234,7 @@ Deployed on **Streamlit Community Cloud** — free hosting.
 
 **To deploy your own:**
 1. Fork this repo
-2. Go to [share.streamlit.io](https://share.streamlit.io)
+2. Go to [Website](https://cineematch.streamlit.app/)
 3. Connect your GitHub and select this repo
 4. Set main file as `app.py`
 5. Click Deploy!

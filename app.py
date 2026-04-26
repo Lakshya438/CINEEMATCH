@@ -65,17 +65,21 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 @media (min-width: 768px) {
     .nf-hero { padding: 3.5rem 3rem 2.5rem; text-align: left; }
 }
+
+/* FIX: keep CINEMATCH on one line at all screen sizes */
 .nf-logo {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.6rem;
+    font-size: clamp(2rem, 8vw, 3.8rem);   /* fluid: shrinks on narrow screens */
     letter-spacing: 0.04em;
     color: #e50914;
     line-height: 1;
     text-shadow: 0 2px 30px rgba(229,9,20,0.5);
     margin: 0 0 0.2rem;
+    white-space: nowrap;          /* FIX: never wrap across lines */
+    display: block;
 }
-@media (min-width: 768px) { .nf-logo { font-size: 3.8rem; } }
 .nf-logo span { color: #fff; }
+
 .nf-tagline {
     font-size: 0.72rem;
     font-weight: 300;
@@ -289,6 +293,12 @@ def rating_bar(rating):
     )
 
 
+# ── Session state — single source of truth for the active query ───────────────
+# FIX: quick-pick buttons write to st.session_state so the value survives reruns
+if "active_query" not in st.session_state:
+    st.session_state.active_query = ""
+
+
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("""
@@ -309,7 +319,8 @@ with st.sidebar:
     type_filter = st.selectbox("", ["All", "Movie", "TV Series", "Mini Series", "TV Movie"], label_visibility="collapsed")
 
     st.markdown('<div class="nf-section-label" style="margin-top:1rem">Results Count</div>', unsafe_allow_html=True)
-    top_n = st.slider("", 5, 20, 10, label_visibility="collapsed")
+    # FIX: give the slider a stable key so Streamlit always reads its current value
+    top_n = st.slider("", 5, 20, 10, label_visibility="collapsed", key="top_n_slider")
 
     st.markdown('<hr style="border-color:#222;margin:1rem 0">', unsafe_allow_html=True)
     st.markdown('<div class="nf-section-label">Library Stats</div>', unsafe_allow_html=True)
@@ -340,23 +351,42 @@ st.markdown("""
 
 # ── Search bar ────────────────────────────────────────────────────────────────
 st.markdown('<div class="nf-section-label" style="margin-top:1.5rem">Search Title</div>', unsafe_allow_html=True)
-query = st.text_input("", placeholder="Search for a movie or series…  e.g. Game of Thrones, Inception, Breaking Bad",
-                      label_visibility="collapsed")
 
-# Quick picks
+# FIX: text_input writes back to session_state via on_change; its value is pre-filled
+# from session_state so typing AND button clicks both work consistently.
+def _on_text_change():
+    st.session_state.active_query = st.session_state._search_input
+
+typed = st.text_input(
+    "",
+    value=st.session_state.active_query,
+    placeholder="Search for a movie or series…  e.g. Game of Thrones, Inception, Breaking Bad",
+    label_visibility="collapsed",
+    key="_search_input",
+    on_change=_on_text_change,
+)
+
+# Quick picks — FIX: write to session_state instead of a local variable
 st.markdown('<div class="nf-section-label" style="margin-top:0.8rem">Trending Searches</div>', unsafe_allow_html=True)
 quick = ["Inception", "Breaking Bad", "Game of Thrones", "Interstellar", "The Dark Knight", "Stranger Things", "Parasite", "Dark"]
-# 4 columns on all screens — wraps nicely on mobile
+
 row1 = st.columns(4)
 row2 = st.columns(4)
+
 for col, title in zip(row1, quick[:4]):
     if col.button(title, use_container_width=True, key=f"qp_{title}"):
-        query = title
+        st.session_state.active_query = title
+        st.rerun()   # rerun immediately so the new query is reflected
+
 for col, title in zip(row2, quick[4:]):
     if col.button(title, use_container_width=True, key=f"qp2_{title}"):
-        query = title
+        st.session_state.active_query = title
+        st.rerun()
 
 st.markdown("<hr>", unsafe_allow_html=True)
+
+# Resolve the active query from session state
+query = st.session_state.active_query.strip()
 
 
 # ── Results ───────────────────────────────────────────────────────────────────
@@ -367,7 +397,6 @@ if query:
 
     if not matches.empty and not exact_hit:
         st.markdown('<div class="nf-section-label" style="margin-top:0.5rem">Did you mean?</div>', unsafe_allow_html=True)
-        # Show up to 8 suggestions as clickable cards
         n_cols = min(len(matches), 4)
         rows_needed = (min(len(matches), 8) + n_cols - 1) // n_cols
         match_subset = matches.head(8)
@@ -377,14 +406,19 @@ if query:
             for col, (_, mrow) in zip(btn_cols, row_matches.iterrows()):
                 label = f"{mrow['title']} ({int(mrow['year'])})"
                 badge = "🎬" if mrow["type"] == "Movie" else "📺"
+                # FIX: suggestion buttons also write to session_state
                 if col.button(f"{badge} {label}", use_container_width=True, key=f"sug_{mrow['title']}"):
-                    query = mrow["title"]
-                    exact_hit = True
+                    st.session_state.active_query = mrow["title"]
+                    st.rerun()
         st.markdown("<hr>", unsafe_allow_html=True)
 
-    # ── Step 2: show recommendations for the selected/exact title ─────────────
+    # ── Step 2: show recommendations — top_n now always reflects the slider ───
     with st.spinner("Scanning the library…"):
-        recs, source_title, source_rating = get_recommendations(query, top_n=top_n, type_filter=type_filter)
+        recs, source_title, source_rating = get_recommendations(
+            query,
+            top_n=st.session_state.top_n_slider,   # FIX: read from keyed session state
+            type_filter=type_filter,
+        )
 
     if recs is None or recs.empty:
         st.markdown(f"""
@@ -451,7 +485,6 @@ if query:
 """, unsafe_allow_html=True)
 
         # Metrics row
-        # 2x2 grid — works well on both mobile and desktop
         m1, m2 = st.columns(2)
         m3, m4 = st.columns(2)
         m1.metric("Matches Found", len(recs))
@@ -464,7 +497,6 @@ if query:
         st.markdown("<hr>", unsafe_allow_html=True)
         st.markdown(f'<div class="nf-section-label">Top {len(recs)} Recommendations</div>', unsafe_allow_html=True)
 
-        # Single column on mobile, 2 columns on desktop
         use_two_cols = len(recs) > 1
         if use_two_cols:
             left_col, right_col = st.columns([1, 1])

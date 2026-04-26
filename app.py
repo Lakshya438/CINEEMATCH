@@ -12,14 +12,14 @@ import pandas as pd
 st.set_page_config(
     page_title="CineMatch – Find Your Next Watch",
     page_icon="🎬",
-    layout="wide",
-    initial_sidebar_state="expanded",
+    layout="centered",
+    initial_sidebar_state="collapsed",
 )
 
 # ── Netflix-style CSS ─────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Netflix+Sans:wght@400;700&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap');
 
 /* ── Reset & Base ── */
 *, *::before, *::after { box-sizing: border-box; }
@@ -33,98 +33,58 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
 /* Hide Streamlit chrome */
 #MainMenu, footer, header { visibility: hidden; }
 [data-testid="stToolbar"] { display: none; }
-.block-container { padding-top: 0 !important; max-width: 100% !important; }
+.block-container {
+    padding-top: 0 !important;
+    max-width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+}
 
 /* ── Sidebar ── */
-[data-testid="stSidebar"] {
-    background: #000 !important;
-    border-right: 1px solid #2a2a2a !important;
-}
+[data-testid="stSidebar"] { background: #000 !important; border-right: 1px solid #2a2a2a !important; }
 [data-testid="stSidebar"] * { color: #e5e5e5 !important; }
 [data-testid="stSidebar"] .stSelectbox label,
 [data-testid="stSidebar"] .stSlider label { color: #aaa !important; font-size: 0.82rem !important; letter-spacing: 0.08em; text-transform: uppercase; }
-[data-testid="stSidebar"] [data-baseweb="select"] > div {
-    background: #1f1f1f !important;
-    border: 1px solid #333 !important;
-    border-radius: 4px !important;
-}
+[data-testid="stSidebar"] [data-baseweb="select"] > div { background: #1f1f1f !important; border: 1px solid #333 !important; border-radius: 4px !important; }
 [data-testid="stSidebar"] [data-baseweb="select"] span { color: #e5e5e5 !important; }
-[data-testid="stSidebar"] .stSlider [data-testid="stSlider"] div div div div {
-    background: #e50914 !important;
-}
-
-/* Sidebar metrics */
-[data-testid="stSidebar"] [data-testid="stMetric"] {
-    background: #1a1a1a !important;
-    border-radius: 6px !important;
-    border: 1px solid #2a2a2a !important;
-    padding: 0.6rem 0.8rem !important;
-    margin-bottom: 0.4rem !important;
-}
+[data-testid="stSidebar"] [data-testid="stMetric"] { background: #1a1a1a !important; border-radius: 6px !important; border: 1px solid #2a2a2a !important; padding: 0.6rem 0.8rem !important; margin-bottom: 0.4rem !important; }
 [data-testid="stSidebar"] [data-testid="stMetricValue"] { color: #e50914 !important; font-size: 1.3rem !important; }
 [data-testid="stSidebar"] [data-testid="stMetricLabel"] { color: #999 !important; font-size: 0.72rem !important; }
 
 /* ── Netflix Hero Banner ── */
 .nf-hero {
     position: relative;
-    background: linear-gradient(180deg,
-        rgba(20,20,20,0) 0%,
-        rgba(20,20,20,0.4) 40%,
-        rgba(20,20,20,0.95) 85%,
-        #141414 100%),
+    background: linear-gradient(180deg, rgba(20,20,20,0) 0%, rgba(20,20,20,0.95) 85%, #141414 100%),
         linear-gradient(90deg, #1a0000 0%, #141414 60%);
-    padding: 3.5rem 3rem 2.5rem;
+    padding: 2rem 1.2rem 1.5rem;
     margin: -1rem -1rem 0 -1rem;
     border-bottom: 3px solid #e50914;
     overflow: hidden;
+    text-align: center;
 }
-.nf-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 80% 60% at 80% 50%,
-        rgba(229,9,20,0.08) 0%, transparent 70%);
-    pointer-events: none;
+@media (min-width: 768px) {
+    .nf-hero { padding: 3.5rem 3rem 2.5rem; text-align: left; }
 }
 .nf-logo {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 3.8rem;
+    font-size: 2.6rem;
     letter-spacing: 0.04em;
     color: #e50914;
     line-height: 1;
     text-shadow: 0 2px 30px rgba(229,9,20,0.5);
     margin: 0 0 0.2rem;
 }
+@media (min-width: 768px) { .nf-logo { font-size: 3.8rem; } }
 .nf-logo span { color: #fff; }
 .nf-tagline {
-    font-family: 'Barlow', sans-serif;
-    font-size: 1rem;
+    font-size: 0.72rem;
     font-weight: 300;
     color: #aaa;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     margin: 0;
 }
-.nf-stats-row {
-    display: flex;
-    gap: 2rem;
-    margin-top: 1.5rem;
-}
-.nf-stat {
-    text-align: center;
-}
-.nf-stat-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    color: #e50914;
-    line-height: 1;
-}
-.nf-stat-label {
-    font-size: 0.7rem;
-    color: #777;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-}
+@media (min-width: 768px) { .nf-tagline { font-size: 1rem; letter-spacing: 0.1em; } }
 
 /* ── Search box ── */
 .stTextInput > div > div > input {
@@ -134,264 +94,117 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
     color: #fff !important;
     caret-color: #e50914 !important;
     font-family: 'Barlow', sans-serif !important;
-    font-size: 1.05rem !important;
+    font-size: 1rem !important;
     padding: 0.75rem 1rem !important;
     transition: border-color 0.2s !important;
 }
-.stTextInput > div > div > input:focus {
-    border-color: #e50914 !important;
-    box-shadow: 0 0 0 2px rgba(229,9,20,0.15) !important;
-    outline: none !important;
-}
+.stTextInput > div > div > input:focus { border-color: #e50914 !important; box-shadow: 0 0 0 2px rgba(229,9,20,0.15) !important; outline: none !important; }
 .stTextInput > div > div > input::placeholder { color: #555 !important; }
 
 /* ── Section labels ── */
 .nf-section-label {
     font-family: 'Barlow', sans-serif;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: #777;
-    margin: 0 0 0.6rem;
+    margin: 0 0 0.5rem;
 }
 
-/* ── Quick pick & suggestion buttons ── */
+/* ── Buttons ── */
 .stButton > button {
     background: #1f1f1f !important;
     border: 1px solid #333 !important;
     color: #ccc !important;
     border-radius: 3px !important;
     font-family: 'Barlow', sans-serif !important;
-    font-size: 0.8rem !important;
+    font-size: 0.75rem !important;
     font-weight: 600 !important;
     letter-spacing: 0.04em !important;
-    padding: 0.35rem 0.6rem !important;
+    padding: 0.4rem 0.5rem !important;
     transition: all 0.15s !important;
-    white-space: nowrap;
+    white-space: normal !important;
     overflow: hidden;
     text-overflow: ellipsis;
     text-align: left !important;
-}
-.stButton > button:hover {
-    background: #e50914 !important;
-    border-color: #e50914 !important;
-    color: #fff !important;
-    transform: translateY(-1px) !important;
-}
-/* suggestion buttons — slightly taller with left-align */
-[data-testid="stHorizontalBlock"] .stButton > button {
-    padding: 0.55rem 0.75rem !important;
-    font-size: 0.78rem !important;
-    white-space: normal !important;
+    width: 100% !important;
     height: auto !important;
-    line-height: 1.35 !important;
+    line-height: 1.3 !important;
 }
+.stButton > button:hover { background: #e50914 !important; border-color: #e50914 !important; color: #fff !important; }
 
 /* ── Searched title detail card ── */
-.nf-source-detail {
-    border: 1px solid #3a1a1a;
-    border-left: 5px solid #e50914;
-    border-radius: 8px;
-    margin-bottom: 1.2rem;
-    overflow: hidden;
-}
-.nf-source-detail-inner {
-    padding: 1.3rem 1.6rem;
-    background: linear-gradient(135deg, #1a0a0a 0%, #1a1a1a 100%);
-}
-.src-eyebrow {
-    font-size: 0.62rem;
-    color: #e50914;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    font-weight: 700;
-    margin-bottom: 0.4rem;
-}
-.src-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    color: #fff;
-    letter-spacing: 0.05em;
-    line-height: 1.1;
-    margin-bottom: 0.2rem;
-}
-.src-sub {
-    font-size: 0.8rem;
-    color: #777;
-    margin-bottom: 0.5rem;
-}
+.nf-source-detail { border: 1px solid #3a1a1a; border-left: 5px solid #e50914; border-radius: 8px; margin-bottom: 1.2rem; overflow: hidden; }
+.nf-source-detail-inner { padding: 1rem 1.1rem; background: linear-gradient(135deg, #1a0a0a 0%, #1a1a1a 100%); }
+@media (min-width: 768px) { .nf-source-detail-inner { padding: 1.3rem 1.6rem; } }
+.src-eyebrow { font-size: 0.6rem; color: #e50914; text-transform: uppercase; letter-spacing: 0.18em; font-weight: 700; margin-bottom: 0.4rem; }
+.src-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: #fff; letter-spacing: 0.05em; line-height: 1.1; margin-bottom: 0.2rem; }
+@media (min-width: 768px) { .src-title { font-size: 2rem; } }
+.src-sub { font-size: 0.76rem; color: #777; margin-bottom: 0.5rem; }
 
 /* ── Source title banner ── */
-.nf-source-banner {
-    background: linear-gradient(90deg, rgba(229,9,20,0.15) 0%, transparent 100%);
-    border-left: 4px solid #e50914;
-    padding: 0.8rem 1.2rem;
-    border-radius: 0 6px 6px 0;
-    margin: 1.2rem 0;
-}
+.nf-source-banner { background: linear-gradient(90deg, rgba(229,9,20,0.15) 0%, transparent 100%); border-left: 4px solid #e50914; padding: 0.8rem 1.2rem; border-radius: 0 6px 6px 0; margin: 1.2rem 0; }
 .nf-source-banner .label { font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.1em; }
-.nf-source-banner .title { font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; color: #fff; letter-spacing: 0.05em; line-height: 1.1; }
+.nf-source-banner .title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: #fff; letter-spacing: 0.05em; line-height: 1.1; }
 
 /* ── Metric row ── */
-[data-testid="stMetric"] {
-    background: #1a1a1a !important;
-    border: 1px solid #2a2a2a !important;
-    border-radius: 6px !important;
-    padding: 0.8rem 1rem !important;
-}
-[data-testid="stMetricValue"] {
-    color: #e50914 !important;
-    font-family: 'Bebas Neue', sans-serif !important;
-    font-size: 1.8rem !important;
-}
-[data-testid="stMetricLabel"] { color: #888 !important; font-size: 0.72rem !important; text-transform: uppercase; letter-spacing: 0.08em; }
+[data-testid="stMetric"] { background: #1a1a1a !important; border: 1px solid #2a2a2a !important; border-radius: 6px !important; padding: 0.6rem 0.7rem !important; }
+[data-testid="stMetricValue"] { color: #e50914 !important; font-family: 'Bebas Neue', sans-serif !important; font-size: 1.3rem !important; }
+[data-testid="stMetricLabel"] { color: #888 !important; font-size: 0.62rem !important; text-transform: uppercase; letter-spacing: 0.06em; }
 
-/* ── Movie Cards ── */
-.nf-card {
-    background: #1a1a1a;
-    border-radius: 6px;
-    overflow: hidden;
-    margin-bottom: 0.9rem;
-    border: 1px solid #2a2a2a;
-    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-    position: relative;
-}
-.nf-card:hover {
-    transform: scale(1.02);
-    border-color: #e50914;
-    box-shadow: 0 8px 32px rgba(229,9,20,0.2), 0 2px 8px rgba(0,0,0,0.6);
-    z-index: 10;
-}
-.nf-card-accent {
-    height: 3px;
-    background: linear-gradient(90deg, #e50914, #ff6b35);
-}
-.nf-card-body { padding: 1rem 1.1rem 0.9rem; }
-.nf-card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 0.5rem;
-}
-.nf-card-rank {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.2rem;
-    color: #333;
-    line-height: 1;
-    margin-right: 0.5rem;
-    min-width: 2rem;
-    flex-shrink: 0;
-}
+/* ── Movie Cards — single column on mobile, 2 col on desktop ── */
+.nf-card { background: #1a1a1a; border-radius: 6px; overflow: hidden; margin-bottom: 0.9rem; border: 1px solid #2a2a2a; transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; position: relative; }
+.nf-card:hover { transform: scale(1.01); border-color: #e50914; box-shadow: 0 8px 32px rgba(229,9,20,0.2); z-index: 10; }
+.nf-card-accent { height: 3px; background: linear-gradient(90deg, #e50914, #ff6b35); }
+.nf-card-body { padding: 0.85rem 0.95rem 0.8rem; }
+.nf-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.4rem; }
+.nf-card-rank { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: #333; line-height: 1; margin-right: 0.4rem; min-width: 1.8rem; flex-shrink: 0; }
 .nf-card-title-block { flex: 1; }
-.nf-card-title {
-    font-family: 'Barlow', sans-serif;
-    font-size: 1rem;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1.2;
-    margin: 0 0 0.15rem;
-}
-.nf-card-year {
-    font-size: 0.78rem;
-    color: #777;
-    font-weight: 300;
-}
-.nf-match-badge {
-    background: #e50914;
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    padding: 0.2rem 0.55rem;
-    border-radius: 3px;
-    flex-shrink: 0;
-    align-self: flex-start;
-}
-.nf-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-    margin: 0.5rem 0;
-}
-.nf-tag {
-    background: #2a2a2a;
-    border: 1px solid #383838;
-    color: #bbb;
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 0.15rem 0.5rem;
-    border-radius: 2px;
-}
+.nf-card-title { font-family: 'Barlow', sans-serif; font-size: 0.92rem; font-weight: 700; color: #fff; line-height: 1.2; margin: 0 0 0.12rem; }
+.nf-card-year { font-size: 0.72rem; color: #777; font-weight: 300; }
+.nf-match-badge { background: #e50914; color: #fff; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.06em; padding: 0.18rem 0.5rem; border-radius: 2px; flex-shrink: 0; align-self: flex-start; }
+.nf-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; margin: 0.4rem 0; }
+.nf-tag { background: #2a2a2a; border: 1px solid #383838; color: #bbb; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.12rem 0.45rem; border-radius: 2px; }
 .nf-tag-type { background: rgba(229,9,20,0.12); border-color: rgba(229,9,20,0.3); color: #ff6b6b; }
-.nf-rating-row {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin: 0.4rem 0;
-}
-.nf-imdb-badge {
-    background: #f5c518;
-    color: #000;
-    font-size: 0.65rem;
-    font-weight: 800;
-    padding: 0.1rem 0.4rem;
-    border-radius: 2px;
-}
-.nf-rating-num { color: #f5c518; font-weight: 700; font-size: 0.9rem; }
-.nf-rating-sep { color: #444; font-size: 0.75rem; }
-.nf-votes { color: #666; font-size: 0.75rem; }
-.nf-meta { color: #777; font-size: 0.78rem; margin: 0.25rem 0; line-height: 1.4; }
+.nf-rating-row { display: flex; align-items: center; gap: 5px; margin: 0.4rem 0; flex-wrap: wrap; }
+.nf-imdb-badge { background: #f5c518; color: #000; font-size: 0.62rem; font-weight: 800; padding: 0.1rem 0.35rem; border-radius: 2px; }
+.nf-rating-num { color: #f5c518; font-weight: 700; font-size: 0.85rem; }
+.nf-rating-sep { color: #444; font-size: 0.72rem; }
+.nf-votes { color: #666; font-size: 0.72rem; }
+.nf-meta { color: #777; font-size: 0.74rem; margin: 0.2rem 0; line-height: 1.4; }
 .nf-meta b { color: #aaa; font-weight: 600; }
-.nf-imdb-link {
-    display: inline-block;
-    margin-top: 0.55rem;
-    color: #e50914;
-    font-size: 0.78rem;
-    font-weight: 600;
-    text-decoration: none;
-    letter-spacing: 0.04em;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.15s;
-}
+.nf-imdb-link { display: inline-block; margin-top: 0.45rem; color: #e50914; font-size: 0.74rem; font-weight: 600; text-decoration: none; letter-spacing: 0.04em; border-bottom: 1px solid transparent; transition: border-color 0.15s; }
 .nf-imdb-link:hover { border-bottom-color: #e50914; }
 
 /* ── Featured hero cards (landing) ── */
-.nf-featured-card {
-    background: linear-gradient(180deg, #1f1f1f 0%, #141414 100%);
-    border: 1px solid #2a2a2a;
-    border-top: 3px solid #e50914;
-    border-radius: 6px;
-    padding: 1.1rem;
-    margin-bottom: 0.8rem;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.nf-featured-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 40px rgba(229,9,20,0.18);
-}
-.nf-featured-title { font-size: 0.95rem; font-weight: 700; color: #fff; margin: 0 0 0.3rem; }
-.nf-featured-year  { font-size: 0.75rem; color: #777; }
-.nf-featured-genre { font-size: 0.75rem; color: #aaa; margin: 0.3rem 0; }
+.nf-featured-card { background: linear-gradient(180deg, #1f1f1f 0%, #141414 100%); border: 1px solid #2a2a2a; border-top: 3px solid #e50914; border-radius: 6px; padding: 0.9rem; margin-bottom: 0.8rem; transition: transform 0.2s, box-shadow 0.2s; }
+.nf-featured-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(229,9,20,0.18); }
+.nf-featured-title { font-size: 0.88rem; font-weight: 700; color: #fff; margin: 0 0 0.25rem; }
+.nf-featured-year { font-size: 0.72rem; color: #777; }
+.nf-featured-genre { font-size: 0.72rem; color: #aaa; margin: 0.25rem 0; }
 
 /* ── Divider ── */
-hr { border: none; border-top: 1px solid #2a2a2a !important; margin: 1.2rem 0 !important; }
+hr { border: none; border-top: 1px solid #2a2a2a !important; margin: 1rem 0 !important; }
 
 /* ── Alerts ── */
-[data-testid="stAlert"] {
-    background: #1a1a1a !important;
-    border: 1px solid #2a2a2a !important;
-    border-radius: 4px !important;
-    color: #ccc !important;
-}
+[data-testid="stAlert"] { background: #1a1a1a !important; border: 1px solid #2a2a2a !important; border-radius: 4px !important; color: #ccc !important; }
 
-/* ── Spinner text ── */
+/* ── Spinner ── */
 .stSpinner p { color: #aaa !important; }
 
+/* ── Mobile: collapse columns to single stack ── */
+@media (max-width: 640px) {
+    .block-container { padding-left: 0.6rem !important; padding-right: 0.6rem !important; }
+    .nf-hero { padding: 1.5rem 0.8rem 1.2rem; }
+    [data-testid="stMetricValue"] { font-size: 1.1rem !important; }
+    [data-testid="stMetricLabel"] { font-size: 0.55rem !important; }
+    .nf-card-title { font-size: 0.85rem; }
+    .nf-card-rank { font-size: 1.5rem; }
+}
+
 /* scrollbar */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #0d0d0d; }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #e50914; }
@@ -400,17 +213,22 @@ hr { border: none; border-top: 1px solid #2a2a2a !important; margin: 1.2rem 0 !i
 
 
 # ── Load model ────────────────────────────────────────────────────────────────
-@st.cache_resource(show_spinner="Loading recommendation engine…")
-def load_model(path: str = "recommendation_model.pkl"):
-    with open(path, "rb") as f:
-        return pickle.load(f)
+@st.cache_resource(show_spinner="Building recommendation engine… (first run only, ~30 seconds)")
+def load_model(pkl_path: str = "recommendation_model.pkl", csv_path: str = "imdb_dataset.csv"):
+    import os
+    if os.path.exists(pkl_path):
+        with open(pkl_path, "rb") as f:
+            return pickle.load(f)
+    # Auto-build on first deploy (Streamlit Cloud won't have the pkl)
+    from mrs import build_and_save
+    return build_and_save(csv_path, pkl_path)
 
 try:
     payload      = load_model()
     df           = payload["df"]
     tfidf_matrix = payload["tfidf_matrix"]
 except FileNotFoundError:
-    st.error("❌  `recommendation_model.pkl` not found. Run `python mrs.py` first.")
+    st.error("❌  `imdb_dataset.csv` not found. Make sure it is committed to your repo.")
     st.stop()
 
 
@@ -527,10 +345,15 @@ query = st.text_input("", placeholder="Search for a movie or series…  e.g. Gam
 
 # Quick picks
 st.markdown('<div class="nf-section-label" style="margin-top:0.8rem">Trending Searches</div>', unsafe_allow_html=True)
-quick  = ["Inception", "Breaking Bad", "Game of Thrones", "Interstellar", "The Dark Knight", "Stranger Things", "Parasite", "Dark"]
-cols   = st.columns(len(quick))
-for col, title in zip(cols, quick):
-    if col.button(title, use_container_width=True):
+quick = ["Inception", "Breaking Bad", "Game of Thrones", "Interstellar", "The Dark Knight", "Stranger Things", "Parasite", "Dark"]
+# 4 columns on all screens — wraps nicely on mobile
+row1 = st.columns(4)
+row2 = st.columns(4)
+for col, title in zip(row1, quick[:4]):
+    if col.button(title, use_container_width=True, key=f"qp_{title}"):
+        query = title
+for col, title in zip(row2, quick[4:]):
+    if col.button(title, use_container_width=True, key=f"qp2_{title}"):
         query = title
 
 st.markdown("<hr>", unsafe_allow_html=True)
@@ -628,7 +451,9 @@ if query:
 """, unsafe_allow_html=True)
 
         # Metrics row
-        m1, m2, m3, m4 = st.columns(4)
+        # 2x2 grid — works well on both mobile and desktop
+        m1, m2 = st.columns(2)
+        m3, m4 = st.columns(2)
         m1.metric("Matches Found", len(recs))
         m2.metric("IMDb Rating", f"{source_rating} / 10")
         m3.metric("Top Match", f"{recs['similarity'].iloc[0]*100:.0f}%")
@@ -639,10 +464,12 @@ if query:
         st.markdown("<hr>", unsafe_allow_html=True)
         st.markdown(f'<div class="nf-section-label">Top {len(recs)} Recommendations</div>', unsafe_allow_html=True)
 
-        # Two-column card grid
-        left_col, right_col = st.columns(2)
+        # Single column on mobile, 2 columns on desktop
+        use_two_cols = len(recs) > 1
+        if use_two_cols:
+            left_col, right_col = st.columns([1, 1])
         for i, row in recs.iterrows():
-            col = left_col if i % 2 == 0 else right_col
+            col = (left_col if i % 2 == 0 else right_col) if use_two_cols else st
             match_pct  = f"{row['similarity']*100:.0f}%"
             votes_fmt  = f"{row['votes_clean']:,}" if row['votes_clean'] > 0 else "—"
             cast_short = "; ".join(str(row["cast"]).split(";")[:2])
@@ -794,9 +621,9 @@ else:
     # Top-rated featured section
     st.markdown('<div class="nf-section-label">Top Rated in Library</div>', unsafe_allow_html=True)
     featured = df[df["rating"] >= 9.0].sample(min(6, (df["rating"] >= 9.0).sum()), random_state=7)
-    f_cols   = st.columns(3)
+    f_cols   = st.columns(2)
     for i, (_, row) in enumerate(featured.iterrows()):
-        with f_cols[i % 3]:
+        with f_cols[i % 2]:
             genre_badges = " · ".join(g.strip() for g in str(row["genre"]).split(",") if g.strip())
             st.markdown(f"""
 <div class="nf-featured-card">
@@ -820,9 +647,9 @@ else:
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown('<div class="nf-section-label">Popular · 2020s</div>', unsafe_allow_html=True)
     trending = df[(df["year"] >= 2020) & (df["votes_clean"] > 100000)].nlargest(6, "votes_clean")
-    t_cols   = st.columns(3)
+    t_cols   = st.columns(2)
     for i, (_, row) in enumerate(trending.iterrows()):
-        with t_cols[i % 3]:
+        with t_cols[i % 2]:
             genre_badges = " · ".join(g.strip() for g in str(row["genre"]).split(",") if g.strip())
             st.markdown(f"""
 <div class="nf-featured-card" style="border-top-color:#f5c518">

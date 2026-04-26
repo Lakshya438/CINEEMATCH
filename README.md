@@ -152,7 +152,7 @@ This ensures **Game of Thrones → House of the Dragon, Vikings** rather than ra
 CINEMATCH/
 │
 ├── app.py                  # Streamlit UI — Netflix dark theme
-├── mrs.py                  # Recommendation engine — TF-IDF model
+├── movie_analysis.py                  # Recommendation engine — TF-IDF model
 ├── imdb_dataset.csv        # IMDb dataset (20,000 titles)
 ├── requirements.txt        # Python dependencies
 └── README.md               # You are here
@@ -177,7 +177,7 @@ pip install -r requirements.txt
 
 **3. Build the model (first time only):**
 ```bash
-python mrs.py
+python movie_analysis.py
 ```
 
 **4. Run the app:**

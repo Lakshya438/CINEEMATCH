@@ -30,9 +30,41 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
     font-family: 'Barlow', 'Helvetica Neue', Arial, sans-serif !important;
 }
 
-/* Hide Streamlit chrome */
-#MainMenu, footer, header { visibility: hidden; }
+/* Hide Streamlit chrome but keep the sidebar toggle visible */
+#MainMenu, footer { visibility: hidden; }
+header { visibility: hidden; }
 [data-testid="stToolbar"] { display: none; }
+
+/* ── Sidebar toggle button — always visible, Netflix styled ── */
+[data-testid="collapsedControl"] {
+    visibility: visible !important;
+    display: flex !important;
+    position: fixed !important;
+    top: 0.6rem !important;
+    left: 0.6rem !important;
+    z-index: 9999 !important;
+    background: #e50914 !important;
+    border: none !important;
+    border-radius: 4px !important;
+    width: 2.4rem !important;
+    height: 2.4rem !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 2px 12px rgba(229,9,20,0.5) !important;
+    transition: background 0.15s, transform 0.15s !important;
+}
+[data-testid="collapsedControl"]:hover {
+    background: #ff1f2e !important;
+    transform: scale(1.08) !important;
+}
+[data-testid="collapsedControl"] svg {
+    fill: #fff !important;
+    color: #fff !important;
+    width: 1.1rem !important;
+    height: 1.1rem !important;
+}
+
 .block-container {
     padding-top: 0 !important;
     max-width: 100% !important;
@@ -60,11 +92,26 @@ html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
     margin: -1rem -1rem 0 -1rem;
     border-bottom: 3px solid #e50914;
     overflow: hidden;
-    text-align: center;
+    text-align: center;   /* always centered on all screen sizes */
 }
 @media (min-width: 768px) {
-    .nf-hero { padding: 3.5rem 3rem 2.5rem; text-align: left; }
+    .nf-hero { padding: 3.5rem 3rem 2.5rem; text-align: center; }
 }
+
+/* ── Inline control bar (filter + slider) ── */
+.nf-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 0.8rem;
+}
+.nf-ctrl-group { display: flex; flex-direction: column; gap: 0.3rem; flex: 1; min-width: 140px; }
+.nf-ctrl-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #666; }
 
 /* FIX: keep CINEMATCH on one line at all screen sizes */
 .nf-logo {
@@ -316,11 +363,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="nf-section-label">Content Type</div>', unsafe_allow_html=True)
-    type_filter = st.selectbox("", ["All", "Movie", "TV Series", "Mini Series", "TV Movie"], label_visibility="collapsed")
-
-    st.markdown('<div class="nf-section-label" style="margin-top:1rem">Results Count</div>', unsafe_allow_html=True)
-    # FIX: give the slider a stable key so Streamlit always reads its current value
-    top_n = st.slider("", 5, 20, 10, label_visibility="collapsed", key="top_n_slider")
+    st.caption("Use the filter below the search bar")
 
     st.markdown('<hr style="border-color:#222;margin:1rem 0">', unsafe_allow_html=True)
     st.markdown('<div class="nf-section-label">Library Stats</div>', unsafe_allow_html=True)
@@ -385,6 +428,26 @@ for col, title in zip(row2, quick[4:]):
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
+# ── Inline controls — always visible on both mobile and desktop ───────────────
+st.markdown('<div class="nf-section-label">Filters &amp; Options</div>', unsafe_allow_html=True)
+ctrl_c1, ctrl_c2 = st.columns([1, 1])
+with ctrl_c1:
+    st.markdown('<div class="nf-ctrl-label">Content Type</div>', unsafe_allow_html=True)
+    type_filter = st.selectbox(
+        "", ["All", "Movie", "TV Series", "Mini Series", "TV Movie"],
+        label_visibility="collapsed",
+        key="inline_type_filter",
+    )
+with ctrl_c2:
+    st.markdown('<div class="nf-ctrl-label">No. of Recommendations</div>', unsafe_allow_html=True)
+    top_n = st.slider(
+        "", 5, 20, 10,
+        label_visibility="collapsed",
+        key="inline_top_n",
+    )
+
+st.markdown("<hr>", unsafe_allow_html=True)
+
 # Resolve the active query from session state
 query = st.session_state.active_query.strip()
 
@@ -416,7 +479,7 @@ if query:
     with st.spinner("Scanning the library…"):
         recs, source_title, source_rating = get_recommendations(
             query,
-            top_n=st.session_state.top_n_slider,   # FIX: read from keyed session state
+            top_n=top_n,
             type_filter=type_filter,
         )
 
